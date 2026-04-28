@@ -1,0 +1,312 @@
+name: Build cfnat
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Android
+          - name: android-arm64
+            goos: android
+            goarch: arm64
+            artifact: cfnat-android-arm64
+
+          # Darwin / macOS
+          - name: darwin-amd64
+            goos: darwin
+            goarch: amd64
+            artifact: cfnat-darwin-amd64
+          - name: darwin-arm64
+            goos: darwin
+            goarch: arm64
+            artifact: cfnat-darwin-arm64
+
+          # DragonFly BSD
+          - name: dragonfly-amd64
+            goos: dragonfly
+            goarch: amd64
+            artifact: cfnat-dragonfly-amd64
+
+          # FreeBSD
+          - name: freebsd-386
+            goos: freebsd
+            goarch: "386"
+            artifact: cfnat-freebsd-386
+          - name: freebsd-amd64
+            goos: freebsd
+            goarch: amd64
+            artifact: cfnat-freebsd-amd64
+          - name: freebsd-arm
+            goos: freebsd
+            goarch: arm
+            goarm: "7"
+            artifact: cfnat-freebsd-arm
+          - name: freebsd-arm64
+            goos: freebsd
+            goarch: arm64
+            artifact: cfnat-freebsd-arm64
+
+          # Linux
+          - name: linux-386
+            goos: linux
+            goarch: "386"
+            artifact: cfnat-linux-386
+          - name: linux-amd64
+            goos: linux
+            goarch: amd64
+            artifact: cfnat-linux-amd64
+          - name: linux-arm64
+            goos: linux
+            goarch: arm64
+            artifact: cfnat-linux-arm64
+          - name: linux-armv5
+            goos: linux
+            goarch: arm
+            goarm: "5"
+            artifact: cfnat-linux-armv5
+          - name: linux-armv6
+            goos: linux
+            goarch: arm
+            goarm: "6"
+            artifact: cfnat-linux-armv6
+          - name: linux-armv7
+            goos: linux
+            goarch: arm
+            goarm: "7"
+            artifact: cfnat-linux-armv7
+          - name: linux-mips-hard
+            goos: linux
+            goarch: mips
+            gomips: hardfloat
+            artifact: cfnat-linux-mips-hard
+          - name: linux-mips-soft
+            goos: linux
+            goarch: mips
+            gomips: softfloat
+            artifact: cfnat-linux-mips-soft
+          - name: linux-mips64
+            goos: linux
+            goarch: mips64
+            artifact: cfnat-linux-mips64
+          - name: linux-mips64le
+            goos: linux
+            goarch: mips64le
+            artifact: cfnat-linux-mips64le
+          - name: linux-mipsle-hard
+            goos: linux
+            goarch: mipsle
+            gomips: hardfloat
+            artifact: cfnat-linux-mipsle-hard
+          - name: linux-mipsle-soft
+            goos: linux
+            goarch: mipsle
+            gomips: softfloat
+            artifact: cfnat-linux-mipsle-soft
+          - name: linux-ppc64
+            goos: linux
+            goarch: ppc64
+            artifact: cfnat-linux-ppc64
+          - name: linux-ppc64le
+            goos: linux
+            goarch: ppc64le
+            artifact: cfnat-linux-ppc64le
+          - name: linux-riscv64
+            goos: linux
+            goarch: riscv64
+            artifact: cfnat-linux-riscv64
+          - name: linux-s390x
+            goos: linux
+            goarch: s390x
+            artifact: cfnat-linux-s390x
+
+          # NetBSD
+          - name: netbsd-386
+            goos: netbsd
+            goarch: "386"
+            artifact: cfnat-netbsd-386
+          - name: netbsd-amd64
+            goos: netbsd
+            goarch: amd64
+            artifact: cfnat-netbsd-amd64
+          - name: netbsd-arm
+            goos: netbsd
+            goarch: arm
+            goarm: "7"
+            artifact: cfnat-netbsd-arm
+          - name: netbsd-arm64
+            goos: netbsd
+            goarch: arm64
+            artifact: cfnat-netbsd-arm64
+
+          # OpenBSD
+          - name: openbsd-386
+            goos: openbsd
+            goarch: "386"
+            artifact: cfnat-openbsd-386
+          - name: openbsd-amd64
+            goos: openbsd
+            goarch: amd64
+            artifact: cfnat-openbsd-amd64
+          - name: openbsd-arm
+            goos: openbsd
+            goarch: arm
+            goarm: "7"
+            artifact: cfnat-openbsd-arm
+          - name: openbsd-arm64
+            goos: openbsd
+            goarch: arm64
+            artifact: cfnat-openbsd-arm64
+
+          # Plan 9
+          - name: plan9-386
+            goos: plan9
+            goarch: "386"
+            artifact: cfnat-plan9-386
+          - name: plan9-amd64
+            goos: plan9
+            goarch: amd64
+            artifact: cfnat-plan9-amd64
+
+          # Solaris
+          - name: solaris-amd64
+            goos: solaris
+            goarch: amd64
+            artifact: cfnat-solaris-amd64
+
+          # Windows
+          - name: windows-386
+            goos: windows
+            goarch: "386"
+            artifact: cfnat-windows-386.exe
+          - name: windows-amd64
+            goos: windows
+            goarch: amd64
+            artifact: cfnat-windows-amd64.exe
+          - name: windows-arm64
+            goos: windows
+            goarch: arm64
+            artifact: cfnat-windows-arm64.exe
+          - name: windows7-386
+            goos: windows
+            goarch: "386"
+            artifact: cfnat-windows7-386.exe
+            godebug: asyncpreemptoff=1
+          - name: windows7-amd64
+            goos: windows
+            goarch: amd64
+            artifact: cfnat-windows7-amd64.exe
+            godebug: asyncpreemptoff=1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25
+          cache: false
+
+      - name: Build
+        shell: bash
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+          GOMIPS: ${{ matrix.gomips }}
+          GODEBUG: ${{ matrix.godebug }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+
+          echo "Building ${{ matrix.artifact }}"
+          go build -trimpath -ldflags="-s -w" -o "dist/${{ matrix.artifact }}" ./cfnat.go
+
+          # Linux / Unix-like outputs must be executable.
+          # Windows .exe does not need chmod.
+          if [ "${{ matrix.goos }}" != "windows" ]; then
+            chmod +x "dist/${{ matrix.artifact }}"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+
+      - name: Flatten artifacts and chmod
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release
+
+          find dist -type f -maxdepth 3 -print0 | while IFS= read -r -d '' file; do
+            name="$(basename "$file")"
+            cp "$file" "release/$name"
+
+            case "$name" in
+              *.exe)
+                ;;
+              cfnat-linux-*|cfnat-darwin-*|cfnat-freebsd-*|cfnat-openbsd-*|cfnat-netbsd-*|cfnat-dragonfly-*|cfnat-solaris-*|cfnat-plan9-*|cfnat-android-*)
+                chmod +x "release/$name"
+                ;;
+            esac
+          done
+
+          ls -lh release
+
+      - name: Create source zip
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf zip-content
+          mkdir -p zip-content
+          cp -r release/* zip-content/
+          cp cfnat.go README.md ips-v4 ips-v6 locations zip-content/
+          cd zip-content
+          zip -r ../release/cfnat-source.zip .
+          ls -lh ../release/cfnat-source.zip
+
+      - name: Create checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          sha256sum * > sha256sums.txt
+
+      - name: Upload GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            release/*
+            release/cfnat-source.zip
